@@ -1,16 +1,25 @@
 <template>
 <div id="templateIndex" class="">
+  <div v-bind:class="{ splashActive: splash }" id="splashPlate"></div>
   <div class="swiper-container swiper-container-outer">
     <div class="swiper-wrapper">
-      <div v-bind:class="{ aboutExpandedActive: aboutExpanded }" class="swiper-slide menu">
-        {{msg}}
-        <button v-on:click="toggleExpandAbout()" type="button" name="button">Expand</button>
+      <div v-bind:class="{ aboutExpandedActive: aboutExpanded }" id="about" class="swiper-slide">
+        <templateAbout></templateAbout>
+
+        <div id="aboutExpandWrapper" v-bind:class="{ showAboutToggleFade: showAboutToggleExpanded }">
+          <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Close</button>
+          <button v-else v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Expand</button>
+        </div>
+
       </div>
       <div class="swiper-slide content">
         <!-- content slide -->
         <div class="swiper-container swiper-container-inner">
           <div class="swiper-wrapper">
-            <div class="swiper-slide" v-for="project in projects">{{project.title.rendered}}</div>
+            <div class="swiper-slide" v-for="project in projects" v-bind:style="{background:sanitizeHash(project.acf.backgroundcolor)}">
+              <div class="slideInner" v-bind:style="{backgroundImage:'url('+ project.acf.customfeaturedimage.url+')'}"></div>
+              <!-- <div v-bind:src="project.acf.customfeaturedimage.url"></div> -->
+            </div>
           </div>
 
           <div class="swiper-pagination"></div>
@@ -20,9 +29,6 @@
 
       <div class="swiper-slide openedProject">
         <div class="openedProjectInner" v-html="projectContent"></div>
-
-        <!-- projects[currentSlideInner].content.rendered -->
-
       </div>
 
     </div>
@@ -33,7 +39,12 @@
 </template>
 
 <script>
+import templateAbout from './templateAbout'
+
 export default {
+  components: {
+    templateAbout,
+  },
   name: 'templateIndex',
   props: ['mainSlide', 'mainAboutExpanded', 'mainInitQueryValue'],
   data() {
@@ -43,14 +54,21 @@ export default {
       projects: [],
       projectContent: '',
       initialSlide: 0,
-      aboutExpanded: this.mainAboutExpanded
+      aboutExpanded: this.mainAboutExpanded,
+      showAboutToggleExpanded: true,
+      splash: true
+    }
+  },
 
+  filters: {
+    red: function (value) {
+      return 'red'
     }
   },
 
   created: function() {
 
-    this.$http.get('http://api-placeholder.template-studio.nl/wp-json/wp/v2/posts').then(function(response) {
+    this.$http.get('http://api.template-studio.nl/wp-json/wp/v2/posts').then(function(response) {
       this.projects = response.body
         // console.log(this.projects)
       this.initIndexSwiper()
@@ -61,20 +79,78 @@ export default {
   watch: {
 
     '$route': function(newRoute, oldRoute) {
-      // if (this.$route.path.toString() === "/") {
-      //   this.showIndex = true
-      // } else {
-      //   this.showIndex = false
-      // }
-      console.log(this.$route)
-
+      // console.log(this.$route)
     },
+
+    'aboutExpanded': function(newVal, oldVal) {
+      // do something
+      // if (!this.aboutExpanded) {
+        // this.$el.querySelector("#about").scrollTop = 0
+
+        this.scrollToAboutTop()
+
+      // }
+
+    }
+
+
   },
+
   methods: {
+    sanitizeHash:function(input){
+      return input.substr(input.indexOf(":") + 1);
+    },
+
+    scrollToAboutTop: function() {
+
+      var timeoutTotal = 200
+      this.showAboutToggleExpanded = false
+
+      scrollTo(this.$el.querySelector("#about"), 0, timeoutTotal);
+
+      var vm = this
+
+      setTimeout(function() {
+        vm.showAboutToggleExpanded = true
+      }, timeoutTotal);
+
+      function scrollTo(element, to, duration) {
+        var start = element.scrollTop,
+          change = to - start,
+          increment = 20;
+
+        var animateScroll = function(elapsedTime) {
+          elapsedTime += increment;
+          var position = easeInOut(elapsedTime, start, change, duration);
+          element.scrollTop = position;
+          if (elapsedTime < duration) {
+            setTimeout(function() {
+              animateScroll(elapsedTime);
+            }, increment);
+          }
+        };
+
+        animateScroll(0);
+      }
+
+      function easeInOut(currentTime, start, change, duration) {
+        currentTime /= duration / 2;
+        if (currentTime < 1) {
+          return change / 2 * currentTime * currentTime + start;
+        }
+        currentTime -= 1;
+        return -change / 2 * (currentTime * (currentTime - 2) - 1) + start;
+      }
+    },
+
     toggleExpandAbout: function() {
-      console.log('lololo')
       this.aboutExpanded = !this.aboutExpanded
-      this.$emit('setRouteAboutExpanded', this.mainSlide)
+      if (this.aboutExpanded) {
+        this.$emit('setRouteAboutExpanded', this.mainSlide)
+
+      } else {
+        this.$emit('setRouteAbout')
+      }
 
     },
 
@@ -90,29 +166,30 @@ export default {
         resistanceRatio: .00000000000001,
         slideToClickedSlide: true,
         observer: true,
+        onInit: function(swiper) {
+          vm.splash = false
+        },
         onSlideChangeStart: function(swiper) {
 
           if (swiper.realIndex == 0) {
-            vm.$emit('setRouteAbout', 'normal')
-            console.log('about')
+            vm.$emit('setRouteAbout')
 
           }
           if (swiper.realIndex == 1) {
             vm.$emit('setRouteMainSlide', vm.mainSlide)
-            console.log('default')
-            console.log(vm.mainSlide)
           }
 
           if (swiper.realIndex == 2) {
             vm.$emit('setRouteExpanded', vm.mainSlide)
-            console.log('expanded')
           }
 
           if (vm.aboutExpanded) {
             window.setTimeout(function() {
               swiper.updateSlidesSize()
               swiper.slideTo(1);
-            }, 150)
+
+              // match timeout to transition value in #about
+            }, 200)
           }
 
           vm.aboutExpanded = false
@@ -125,7 +202,7 @@ export default {
         pagination: '.swiper-pagination',
         paginationClickable: true,
         initialSlide: 0,
-        loop: true,
+        // loop: true,
         observer: true,
         onInit: function(swiper) {
 
@@ -179,6 +256,47 @@ body {
 </style>
 
 <style scoped lang="scss">
+#splashPlate {
+    -webkit-transition: opacity 1s;
+    -moz-transition: opacity 1s;
+    transition: opacity 1s;
+    -webkit-transition-delay: 1s;
+    -moz-transition-delay: 1s;
+    transition-delay: 1s;
+    opacity: 0;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 9999999999;
+
+    background: #fffae5;
+
+    overflow: hidden;
+    -webkit-user-select: none;
+    /* Chrome all / Safari all */
+    -moz-user-select: none;
+    /* Firefox all */
+    -ms-user-select: none;
+    /* IE 10+ */
+    user-select: none;
+    /* Likely future */
+    pointer-events: none;
+
+    &.splashActive {
+        opacity: 1;
+        -webkit-user-select: default;
+        /* Chrome all / Safari all */
+        -moz-user-select: default;
+        /* Firefox all */
+        -ms-user-select: default;
+        /* IE 10+ */
+        user-select: default;
+        /* Likely future */
+        pointer-events: default;
+
+    }
+}
+
 #templateHeader {
     font-size: 22px;
     position: fixed;
@@ -220,6 +338,14 @@ body {
     /*text-align: center;*/
     font-size: 18px;
     background: #fff;
+
+    .slideInner{
+      width: 100%;
+      height: 100%;
+      background-repeat:no-repeat;
+      background-size:contain;
+      background-position: center;
+    }
 }
 
 .openedProject {}
@@ -231,21 +357,57 @@ body {
     height: calc(100% - 32px);
 }
 
-.menu {
+#about {
     /*min-width: 100px;*/
-    -webkit-transition: height 0.25s;
-    -moz-transition: height 0.25s;
-    transition: height 0.25s;
+    -webkit-transition: height 0.2s;
+    -moz-transition: height 0.2s;
+    transition: height 0.2s;
+    position: relative;
 
     width: 100%;
     height: 75%;
     /*max-width: 320px;*/
-    background-color: #2C8DFB;
-    color: #fff;
+    background-color: #fffae5;
+    color: slategrey;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    #aboutExpandWrapper {
+        opacity: 0;
+        &.showAboutToggleFade {
+            -webkit-transition: opacity 0.2s;
+            -moz-transition: opacity 0.2s;
+            transition: opacity 0.2s;
+            -webkit-transition-delay: 0.1s;
+            -moz-transition-delay: 0.1s;
+            transition-delay: 0.1s;
+            opacity: 1;
+        }
+    }
+
+    .toggleAbout {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: #fffae5;
+        color: slategrey;
+        &:focus {
+            outline: none;
+        }
+    }
 
     &.aboutExpandedActive {
         height: 100%;
+        overflow-y: auto;
+        .toggleAbout {
+            position: fixed;
+        }
     }
+
 }
 
 .content {

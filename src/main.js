@@ -4,9 +4,16 @@ import vueResource from 'vue-resource'
 import swiper from 'swiper'
 import '../node_modules/swiper/dist/css/swiper.min.css'
 
+import vueSmoothScroll from 'vue-smoothscroll';
+Vue.use(vueSmoothScroll);
+
+
 import Hello from './components/Hello'
 import templateIndex from './components/template-index'
 import Hello2 from './components/Hello2'
+
+
+
 
 Vue.use(vueResource)
   // 1. Use plugin.
@@ -61,12 +68,25 @@ new Vue({
   },
   methods: {
     setRouteMainSlide: function(index) {
-      router.push({
-        query: {
-          main: index
-        }
-      })
-      this.mainSlide = index
+
+      if (index == null) {
+        // router.push({
+        //   query: {
+        //     main: Number
+        //   }
+        // })
+        this.mainSlide = 0
+      }else{
+        router.push({
+          query: {
+            main: index
+          }
+        })
+        this.mainSlide = index
+      }
+
+
+
     },
 
     setRouteExpanded: function(index) {
@@ -81,16 +101,14 @@ new Vue({
 
 
     setRouteAbout: function(mode) {
-      if (mode === "normal") {
         router.push({
           query: {
-            about: 'normal',
+            about: 'true',
             main: this.mainSlide
           }
         })
         this.mainAboutNormal = 0
           // console.log(this.$route.query.main)
-      }
     },
 
     setRouteAboutExpanded: function(mode) {
@@ -99,7 +117,7 @@ new Vue({
 
         router.push({
           query: {
-            about: 'normal',
+            about: 'true',
             main: this.mainSlide,
             aboutexp: this.mainAboutExpanded
           }
@@ -112,7 +130,7 @@ new Vue({
   computed: {
     returnInitQueryValue: function() {
 
-      if (this.$route.query.about === "normal") {
+      if (this.$route.query.about === "true") {
         return 0
       }
       if (this.$route.query.about === "expanded") {
