@@ -1,15 +1,18 @@
 <template>
 <div id="templateIndex" class="">
-  <div v-bind:class="{ splashActive: splash }" id="splashPlate"></div>
+  <!-- <div v-bind:class="{ splashActive: splash }" id="splashPlate"></div> -->
   <div class="swiper-container swiper-container-outer">
     <div class="swiper-wrapper">
       <div v-bind:class="{ aboutExpandedActive: aboutExpanded }" id="about" class="swiper-slide">
-        <templateAbout></templateAbout>
+        <templateAbout v-on:goToProjectSection="function(slide){goToProjectSection(slide)}" v-on:expandAbout="expandAbout()" v-bind:aboutExpanded="aboutExpanded"></templateAbout>
 
+
+        <button v-if="!aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutClosed toggleAboutButton" id="expandAboutButton" name="button">Expand</button>
+        <!--
         <div id="aboutExpandWrapper" v-bind:class="{ showAboutToggleFade: showAboutToggleExpanded }">
           <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Close</button>
           <button v-else v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Expand</button>
-        </div>
+        </div> -->
 
       </div>
       <div class="swiper-slide content">
@@ -28,10 +31,14 @@
       </div>
 
       <div class="swiper-slide openedProject">
+        <button v-on:click="goToProjectSection('getFromRoute')" type="button" class="goBackToProjectButton" name="button">Back to top</button>
         <div class="openedProjectInner" v-html="projectContent"></div>
       </div>
 
     </div>
+
+    <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutExpanded toggleAboutButton" name="button">Close</button>
+
 
   </div>
   <router-view></router-view>
@@ -56,12 +63,14 @@ export default {
       initialSlide: 0,
       aboutExpanded: this.mainAboutExpanded,
       showAboutToggleExpanded: true,
-      splash: true
+      splash: true,
+      swiperOuterObject: Object,
+      swiperInnerObject: Object
     }
   },
 
   filters: {
-    red: function (value) {
+    red: function(value) {
       return 'red'
     }
   },
@@ -79,26 +88,108 @@ export default {
   watch: {
 
     '$route': function(newRoute, oldRoute) {
-      // console.log(this.$route)
+      if (this.$route.query.aboutexp) {
+        this.swiperOuterObject.slideTo(0)
+        this.swiperOuterObject.lockSwipes()
+        this.swiperOuterObject.disableTouchControl()
+      }
+
+      if (this.$route.query.about && !this.$route.query.aboutexp) {
+        this.swiperOuterObject.slideTo(0)
+        this.scrollToAboutTop()
+        this.swiperOuterObject.unlockSwipes()
+        this.swiperOuterObject.enableTouchControl()
+      }
+
+      if (newRoute.query.main && oldRoute.query.about) {
+
+        this.swiperOuterObject.unlockSwipes()
+        this.swiperOuterObject.enableTouchControl()
+        if (this.$route.query.main == null) {
+          this.swiperInnerObject.slideTo(0)
+        } else {
+          this.swiperInnerObject.slideTo(this.$route.query.main)
+        }
+        this.swiperOuterObject.updateSlidesSize()
+        this.swiperOuterObject.slideTo(1)
+      }
+
+      if (newRoute.query.main) {
+        this.swiperInnerObject.slideTo(newRoute.query.main)
+
+      }
+
+      if (newRoute.query.main && oldRoute.query.aboutexp) {
+        var vm = this;
+        setTimeout(function() {
+          vm.swiperOuterObject.updateSlidesSize()
+          vm.swiperOuterObject.slideTo(1)
+        }, 200);
+      }
+
+      if (newRoute.query.main == null) {
+        this.swiperInnerObject.slideTo(0)
+      }
+
+      if (oldRoute.query.about && !newRoute.query.aboutexp) {
+        this.swiperOuterObject.unlockSwipes()
+        this.swiperOuterObject.enableTouchControl()
+      }
+
+      if (newRoute.query.project) {
+        this.swiperOuterObject.slideTo(2)
+      }
+
+      if (!newRoute.query.aboutexp) {
+        this.scrollToAboutTop()
+      }
+
+      if (oldRoute.query.project) {
+        this.swiperOuterObject.unlockSwipes()
+        this.swiperOuterObject.enableTouchControl()
+        this.swiperOuterObject.updateSlidesSize()
+        this.swiperOuterObject.slideTo(1)
+      }
+
+      if (this.$route.query.project) {
+        this.swiperOuterObject.lockSwipes()
+        this.swiperOuterObject.disableTouchControl()
+      }
+
+      if (Object.keys(this.$route.query).length === 0) {
+        this.swiperOuterObject.unlockSwipes()
+        this.swiperOuterObject.enableTouchControl()
+        this.swiperOuterObject.updateSlidesSize()
+        this.swiperOuterObject.slideTo(1)
+
+      }
     },
 
-    'aboutExpanded': function(newVal, oldVal) {
-      // do something
-      // if (!this.aboutExpanded) {
-        // this.$el.querySelector("#about").scrollTop = 0
-
-        this.scrollToAboutTop()
-
-      // }
-
-    }
 
 
   },
 
   methods: {
-    sanitizeHash:function(input){
+
+    goToProjectSection: function(slide) {
+      if (slide === 'getFromRoute') {
+        this.$emit('setRouteMainSlide', this.$route.query.main)
+
+      } else {
+        this.$emit('setRouteMainSlide', slide)
+
+      }
+
+    },
+    sanitizeHash: function(input) {
       return input.substr(input.indexOf(":") + 1);
+    },
+
+    expandAbout: function() {
+      this.aboutExpanded = true
+      this.swiperOuterObject.lockSwipes()
+      this.swiperOuterObject.disableTouchControl()
+
     },
 
     scrollToAboutTop: function() {
@@ -144,12 +235,20 @@ export default {
     },
 
     toggleExpandAbout: function() {
+
       this.aboutExpanded = !this.aboutExpanded
+
       if (this.aboutExpanded) {
-        this.$emit('setRouteAboutExpanded', this.mainSlide)
+        this.$emit('setRouteAboutExpanded', true)
+        this.swiperOuterObject.updateSlidesSize()
+        this.swiperOuterObject.slideTo(0);
+
 
       } else {
-        this.$emit('setRouteAbout')
+        this.$emit('setRouteAboutExpanded', false)
+        this.swiperOuterObject.updateSlidesSize()
+        this.swiperOuterObject.slideTo(0);
+
       }
 
     },
@@ -159,16 +258,27 @@ export default {
       var vm = this
       var vmrouter = this.router
 
-      var swiperOuter = new Swiper('.swiper-container-outer', {
+      this.swiperOuterObject = new Swiper('.swiper-container-outer', {
         slidesPerView: 'auto',
         initialSlide: vm.mainInitQueryValue,
         direction: 'vertical',
+        // touchMoveStopPropagation: true,
+        // noSwiping: true,
         resistanceRatio: .00000000000001,
         slideToClickedSlide: true,
         observer: true,
         onInit: function(swiper) {
           vm.splash = false
+          if (vm.aboutExpanded) {
+            swiper.lockSwipes()
+            swiper.disableTouchControl()
+          }
+          // document.querySelector('.toggleAboutClosed').addEventListener('touchstart touchend touchup', function(event) {
+          //   event.stopPropagation()
+          //   alert('to')
+          // });
         },
+
         onSlideChangeStart: function(swiper) {
 
           if (swiper.realIndex == 0) {
@@ -177,20 +287,22 @@ export default {
           }
           if (swiper.realIndex == 1) {
             vm.$emit('setRouteMainSlide', vm.mainSlide)
+            swiper.updateSlidesSize()
+
           }
 
           if (swiper.realIndex == 2) {
             vm.$emit('setRouteExpanded', vm.mainSlide)
           }
-
-          if (vm.aboutExpanded) {
-            window.setTimeout(function() {
-              swiper.updateSlidesSize()
-              swiper.slideTo(1);
-
-              // match timeout to transition value in #about
-            }, 200)
-          }
+          //
+          // if (vm.aboutExpanded) {
+          //   window.setTimeout(function() {
+          //     swiper.updateSlidesSize()
+          //     swiper.slideTo(1);
+          //
+          //     // match timeout to transition value in #about
+          //   }, 201)
+          // }
 
           vm.aboutExpanded = false
 
@@ -198,7 +310,7 @@ export default {
 
       })
 
-      var swiper = new Swiper('.swiper-container-inner', {
+      this.swiperInnerObject = new Swiper('.swiper-container-inner', {
         pagination: '.swiper-pagination',
         paginationClickable: true,
         initialSlide: 0,
@@ -233,29 +345,33 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
+<style lang="scss">@import '../assets/globalVars.scss';
+
 body,
 html {
-  position: relative;
-  height: 100%;
+    position: relative;
+    height: 100%;
+    background: $globalLightYellow;
 }
 
 body {
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  color: #000;
-  margin: 0;
-  padding: 0;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    /*color: #000;*/
+    margin: 0;
+    padding: 0;
 }
 
 #app,
 #templateIndex {
-  position: relative;
-  height: 100%;
+    position: relative;
+    height: 100%;
 }
 </style>
 
 <style scoped lang="scss">
+@import '../assets/globalVars.scss';
+
 #splashPlate {
     -webkit-transition: opacity 1s;
     -moz-transition: opacity 1s;
@@ -269,7 +385,7 @@ body {
     position: absolute;
     z-index: 9999999999;
 
-    background: #fffae5;
+    background: $globalLightYellow;
 
     overflow: hidden;
     -webkit-user-select: none;
@@ -316,7 +432,7 @@ body {
 .swiper-container-inner .swiper-slide {
     text-align: center;
     font-size: 18px;
-    background: #fff;
+    background: $globalLightYellow;
     width: 100%;
     height: 100%;
     /* Center slide text vertically */
@@ -337,24 +453,24 @@ body {
 .swiper-slide {
     /*text-align: center;*/
     font-size: 18px;
-    background: #fff;
 
-    .slideInner{
-      width: 100%;
-      height: 100%;
-      background-repeat:no-repeat;
-      background-size:contain;
-      background-position: center;
+    .slideInner {
+        width: 100%;
+        height: 100%;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
     }
 }
 
 .openedProject {}
 
 .openedProjectInner {
-    margin-top: 32px;
+    // margin-top: 32px;
     overflow-y: auto;
     position: absolute;
-    height: calc(100% - 32px);
+    // height: 100%;
+    height: calc(100% - 40px);
 }
 
 #about {
@@ -367,7 +483,7 @@ body {
     width: 100%;
     height: 75%;
     /*max-width: 320px;*/
-    background-color: #fffae5;
+    background-color: $globalLightYellow;
     color: slategrey;
     overflow-x: hidden;
     overflow-y: hidden;
@@ -385,29 +501,62 @@ body {
         }
     }
 
-    .toggleAbout {
+    .toggleAboutClosed {
+
         position: absolute;
         bottom: 0;
-        width: 100%;
-        height: 40px;
-        margin: 0;
-        padding: 0;
-        border: 0;
-        background: #fffae5;
-        color: slategrey;
-        &:focus {
-            outline: none;
-        }
+
     }
 
     &.aboutExpandedActive {
-        height: 100%;
+        height: calc(100% - 40px);
+        margin-bottom: 40px;
         overflow-y: auto;
-        .toggleAbout {
-            position: fixed;
-        }
     }
 
+}
+
+.toggleAboutExpanded {
+    bottom: 0;
+    position: fixed;
+    z-index: 9999999999999999;
+}
+.toggleAboutButton {
+    border: 0;
+
+    border-top: 1px solid slategrey;
+
+    // width: calc(100% - 40px);
+    width: calc(100%);
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    // margin-left: 20px;
+    // margin-right: 20px;
+    background: $globalLightYellow;
+    color: slategrey;
+    &:focus {
+        outline: none;
+    }
+}
+
+.goBackToProjectButton {
+    border: 0;
+
+    border-bottom: 1px solid slategrey;
+
+    // width: calc(100% - 40px);
+    width: calc(100%);
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    // margin-left: 20px;
+    // margin-right: 20px;
+    background: $globalLightYellow;
+    color: slategrey;
+    &:focus {
+        outline: none;
+    }
 }
 
 .content {

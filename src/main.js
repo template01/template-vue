@@ -2,10 +2,20 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import vueResource from 'vue-resource'
 import swiper from 'swiper'
+// import isotope from 'isotope-layout'
+// import masonry from 'masonry'
 import '../node_modules/swiper/dist/css/swiper.min.css'
 
-import vueSmoothScroll from 'vue-smoothscroll';
-Vue.use(vueSmoothScroll);
+// import '../node_modules/isotope-layout/dist/isotope.pkgd.min.js'
+import './assets/simplegrid.css'
+
+// import vueSmoothScroll from 'vue-smoothscroll';
+// Vue.use(vueSmoothScroll);
+
+
+// import smoothScroll from 'smoothscroll-polyfill';
+// Vue.use(smoothScroll);
+require('smoothscroll-polyfill').polyfill();
 
 
 import Hello from './components/Hello'
@@ -70,12 +80,8 @@ new Vue({
     setRouteMainSlide: function(index) {
 
       if (index == null) {
-        // router.push({
-        //   query: {
-        //     main: Number
-        //   }
-        // })
         this.mainSlide = 0
+
       }else{
         router.push({
           query: {
@@ -104,7 +110,7 @@ new Vue({
         router.push({
           query: {
             about: 'true',
-            main: this.mainSlide
+            main: this.mainSlide,
           }
         })
         this.mainAboutNormal = 0
@@ -113,12 +119,13 @@ new Vue({
 
     setRouteAboutExpanded: function(mode) {
 
-        this.mainAboutExpanded = true
+        this.mainAboutExpanded = mode
+        console.log(mode)
 
         router.push({
           query: {
             about: 'true',
-            main: this.mainSlide,
+            main: 0,
             aboutexp: this.mainAboutExpanded
           }
         })
@@ -148,7 +155,11 @@ new Vue({
   created: function() {
     console.log(this.$route.query.about)
     this.mainSlide = this.$route.query.main
-    this.mainAboutExpanded = this.$route.query.aboutexp
+    if(this.$route.query.aboutexp === 'true'){
+      this.mainAboutExpanded = true
+    }else{
+      this.mainAboutExpanded = false
+    }
     this.mainInitQueryValue = this.returnInitQueryValue
   }
 }).$mount('#app')
