@@ -1,12 +1,22 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import vueResource from 'vue-resource'
+import Vue2Filters from 'vue2-filters'
+
+Vue.use(Vue2Filters)
+
 import swiper from 'swiper'
+
+
+
+// require('../node_modules/list.js/dist/list.min.js')
 // import isotope from 'isotope-layout'
+// import masonry from 'masonry-layout'
 // import masonry from 'masonry'
+
+
 import '../node_modules/swiper/dist/css/swiper.min.css'
 
-// import '../node_modules/isotope-layout/dist/isotope.pkgd.min.js'
 import './assets/simplegrid.css'
 
 // import vueSmoothScroll from 'vue-smoothscroll';
@@ -69,6 +79,8 @@ new Vue({
     </div>
   `,
   data() {
+
+
     return {
       mainSlide: 0,
       mainAboutNormal: 1,

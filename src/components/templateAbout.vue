@@ -2,6 +2,9 @@
 <div class="templateAbout">
   <!-- <h1>{{ aboutText }}</h1> -->
 
+
+
+
   <div class="grid grid-pad">
     <div class="ignoreMarginTop col-1-3">
       <div>
@@ -26,7 +29,7 @@
     </div>
   </div>
 
-  <div v-if="aboutExpanded">
+  <div v-show="aboutExpanded">
     <div class="grid grid-pad">
       <div class="col-1-3 push-1-3">
         <p class="aboutHeader" id="aboutStudio">Studio</p>
@@ -44,13 +47,18 @@
 
       </div>
 
-      <div class="grid grid-pad">
-        <templateArchive v-bind:aboutArchiveObject="aboutArchiveObject"></templateArchive>
-      </div>
 
     </div>
+
+    <div class="grid grid-pad">
+      <templateArchive v-bind:aboutArchiveObject="aboutArchiveObject"></templateArchive>
+    </div>
+
+
+
   </div>
   <!-- <div><img src="https://www.placecage.com/600/800"/></div> -->
+
 
 </div>
 </template>
@@ -73,7 +81,7 @@ export default {
       msg: 'Welcome to Your Vue.js App',
       aboutText: Object,
       aboutProjectsObject: Object,
-      aboutArchiveObject: Object,
+      aboutArchiveObject: [],
     }
   },
 
