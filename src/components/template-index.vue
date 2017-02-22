@@ -7,25 +7,49 @@
         <templateAbout v-on:goToProjectSection="function(slide){goToProjectSection(slide)}" v-on:expandAbout="expandAbout()" v-bind:aboutExpanded="aboutExpanded"></templateAbout>
 
 
-        <button v-if="!aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutClosed toggleAboutButton" id="expandAboutButton" name="button">Expand</button>
-        <!--
-        <div id="aboutExpandWrapper" v-bind:class="{ showAboutToggleFade: showAboutToggleExpanded }">
-          <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Close</button>
-          <button v-else v-on:click="toggleExpandAbout()" type="button" class="toggleAbout" name="button">Expand</button>
-        </div> -->
+        <button v-if="!aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutClosed toggleAboutButton" id="expandAboutButton" name="button">Read More</button>
 
       </div>
       <div class="swiper-slide content">
         <!-- content slide -->
+        <div class="grid grid-pad ignoreMarginTop" id="triggerAboutMenu">
+          <div>
+
+            <p v-if="inAboutSection" class="triggerAboutSlide" @click="toggleAboutSlideON()">
+              <span>Template</span>
+            </p>
+          </div>
+          <div>
+
+            <p v-if="!inAboutSection" class="triggerAboutSlide" @click="toggleAboutSlideOFF()">
+              <span>Back</span>
+            </p>
+          </div>
+        </div>
+
+
         <div class="swiper-container swiper-container-inner">
           <div class="swiper-wrapper">
             <div class="swiper-slide" v-for="project in projects" v-bind:style="{background:sanitizeHash(project.acf.backgroundcolor)}">
               <div class="slideInner" v-bind:style="{backgroundImage:'url('+ project.acf.customfeaturedimage.url+')'}"></div>
               <!-- <div v-bind:src="project.acf.customfeaturedimage.url"></div> -->
+
+
+              <div id="triggerProject"  @click="toggleProject()">
+                <div>
+
+                  <p v-if="inAboutSection" class="triggerAboutSlide">
+                    <span v-html="project.title.rendered"></span>
+                  </p>
+                </div>
+              </div>
+
+
             </div>
           </div>
 
-          <div class="swiper-pagination"></div>
+
+          <!-- <div class="swiper-pagination"></div> -->
         </div>
 
       </div>
@@ -37,7 +61,7 @@
 
     </div>
 
-    <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutExpanded toggleAboutButton" name="button">Close</button>
+    <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutExpanded toggleAboutButton" name="button">Too much - take me back!</button>
 
 
   </div>
@@ -47,6 +71,8 @@
 
 <script>
 import templateAbout from './templateAbout'
+
+
 
 export default {
   components: {
@@ -65,7 +91,8 @@ export default {
       showAboutToggleExpanded: true,
       splash: true,
       swiperOuterObject: Object,
-      swiperInnerObject: Object
+      swiperInnerObject: Object,
+      inAboutSection: true
     }
   },
 
@@ -84,85 +111,82 @@ export default {
 
     })
 
+    if (this.$route.query.about) {
+      this.inAboutSection = false
+    }
+
   },
   watch: {
 
     '$route': function(newRoute, oldRoute) {
-      if (this.$route.query.aboutexp) {
-        this.swiperOuterObject.slideTo(0)
-        this.swiperOuterObject.lockSwipes()
-        this.swiperOuterObject.disableTouchControl()
-      }
+      // console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+      //
+      // console.log(newRoute.query.main)
+      // console.log(newRoute.query.about)
+      // console.log(newRoute.query.project)
+      // console.log(newRoute.query.about)
 
-      if (this.$route.query.about && !this.$route.query.aboutexp) {
-        this.swiperOuterObject.slideTo(0)
-        this.scrollToAboutTop()
-        this.swiperOuterObject.unlockSwipes()
-        this.swiperOuterObject.enableTouchControl()
-      }
+      // if (newRoute.query.main && newRoute.query.about != null || this.$route.query.aboutexp != null || newRoute.query.main === 0 || newRoute.query.main && newRoute.query.project != null) {
+      if (newRoute.query.about != null || this.$route.query.aboutexp != null || newRoute.query.project != null) {
 
-      if (newRoute.query.main && oldRoute.query.about) {
+        if (newRoute.query.about != null) {
+          this.swiperOuterObject.slideTo(0)
+          if (this.$route.query.aboutexp != null) {
+            this.aboutExpanded = true
+            this.swiperOuterObject.lockSwipes()
+            this.swiperOuterObject.disableTouchControl()
+          } else {
 
-        this.swiperOuterObject.unlockSwipes()
-        this.swiperOuterObject.enableTouchControl()
-        if (this.$route.query.main == null) {
-          this.swiperInnerObject.slideTo(0)
-        } else {
-          this.swiperInnerObject.slideTo(this.$route.query.main)
+            this.aboutExpanded = false
+            this.scrollToAboutTop()
+            this.swiperOuterObject.updateSlidesSize()
+            this.swiperOuterObject.unlockSwipes()
+            this.swiperOuterObject.enableTouchControl()
+          }
         }
-        this.swiperOuterObject.updateSlidesSize()
-        this.swiperOuterObject.slideTo(1)
-      }
 
-      if (newRoute.query.main) {
+        if (newRoute.query.project != null) {
+          this.swiperOuterObject.slideTo(2)
+          this.swiperOuterObject.lockSwipes()
+          this.swiperOuterObject.disableTouchControl()
+        }
+
+
+      } else {
+
+        // console.log('only manu')
+        if (this.swiperOuterObject.realIndex != 1) {
+          this.swiperOuterObject.unlockSwipes()
+          this.swiperOuterObject.enableTouchControl()
+          this.swiperOuterObject.updateSlidesSize()
+          this.swiperOuterObject.slideTo(1)
+          var vm = this
+          setTimeout(function() {
+            vm.swiperOuterObject.updateSlidesSize()
+            vm.swiperOuterObject.slideTo(1)
+            vm.swiperOuterObject.updateSlidesSize()
+
+          }, 200)
+          setTimeout(function() {
+            vm.swiperOuterObject.updateSlidesSize()
+          }, 500)
+          setTimeout(function() {
+            vm.swiperOuterObject.slideTo(1)
+          }, 600)
+        }
         this.swiperInnerObject.slideTo(newRoute.query.main)
 
       }
 
-      if (newRoute.query.main && oldRoute.query.aboutexp) {
-        var vm = this;
-        setTimeout(function() {
-          vm.swiperOuterObject.updateSlidesSize()
-          vm.swiperOuterObject.slideTo(1)
-        }, 200);
-      }
+      if (newRoute.query.about != null) {
+        this.inAboutSection = false
 
-      if (newRoute.query.main == null) {
-        this.swiperInnerObject.slideTo(0)
-      }
-
-      if (oldRoute.query.about && !newRoute.query.aboutexp) {
-        this.swiperOuterObject.unlockSwipes()
-        this.swiperOuterObject.enableTouchControl()
-      }
-
-      if (newRoute.query.project) {
-        this.swiperOuterObject.slideTo(2)
-      }
-
-      if (!newRoute.query.aboutexp) {
-        this.scrollToAboutTop()
-      }
-
-      if (oldRoute.query.project) {
-        this.swiperOuterObject.unlockSwipes()
-        this.swiperOuterObject.enableTouchControl()
-        this.swiperOuterObject.updateSlidesSize()
-        this.swiperOuterObject.slideTo(1)
-      }
-
-      if (this.$route.query.project) {
-        this.swiperOuterObject.lockSwipes()
-        this.swiperOuterObject.disableTouchControl()
-      }
-
-      if (Object.keys(this.$route.query).length === 0) {
-        this.swiperOuterObject.unlockSwipes()
-        this.swiperOuterObject.enableTouchControl()
-        this.swiperOuterObject.updateSlidesSize()
-        this.swiperOuterObject.slideTo(1)
+      } else {
+        this.inAboutSection = true
 
       }
+
+
     },
 
 
@@ -173,6 +197,7 @@ export default {
 
     goToProjectSection: function(slide) {
       if (slide === 'getFromRoute') {
+        console.log(this.$route.query.main)
         this.$emit('setRouteMainSlide', this.$route.query.main)
 
       } else {
@@ -187,9 +212,7 @@ export default {
 
     expandAbout: function() {
       this.aboutExpanded = true
-      this.swiperOuterObject.lockSwipes()
-      this.swiperOuterObject.disableTouchControl()
-
+      this.$emit('setRouteAboutExpanded', true)
     },
 
     scrollToAboutTop: function() {
@@ -236,21 +259,38 @@ export default {
 
     toggleExpandAbout: function() {
 
+      console.log('gogogogogog')
+
       this.aboutExpanded = !this.aboutExpanded
 
       if (this.aboutExpanded) {
         this.$emit('setRouteAboutExpanded', true)
-        this.swiperOuterObject.updateSlidesSize()
-        this.swiperOuterObject.slideTo(0);
-
-
       } else {
         this.$emit('setRouteAboutExpanded', false)
-        this.swiperOuterObject.updateSlidesSize()
-        this.swiperOuterObject.slideTo(0);
-
       }
 
+      this.swiperOuterObject.updateSlidesSize()
+      this.swiperOuterObject.slideTo(0);
+
+      var vm = this
+      setTimeout(function() {
+        vm.swiperOuterObject.updateSlidesSize()
+        vm.swiperOuterObject.slideTo(0)
+      }, 200)
+
+
+    },
+
+    toggleProject: function() {
+      this.swiperOuterObject.slideTo(2);
+    },
+
+    toggleAboutSlideON: function() {
+      this.swiperOuterObject.slideTo(0);
+    },
+
+    toggleAboutSlideOFF: function() {
+      this.swiperOuterObject.slideTo(1);
     },
 
     initIndexSwiper: function() {
@@ -262,10 +302,7 @@ export default {
         slidesPerView: 'auto',
         initialSlide: vm.mainInitQueryValue,
         direction: 'vertical',
-        // touchMoveStopPropagation: true,
-        // noSwiping: true,
         resistanceRatio: .00000000000001,
-        slideToClickedSlide: true,
         observer: true,
         onInit: function(swiper) {
           vm.splash = false
@@ -273,10 +310,6 @@ export default {
             swiper.lockSwipes()
             swiper.disableTouchControl()
           }
-          // document.querySelector('.toggleAboutClosed').addEventListener('touchstart touchend touchup', function(event) {
-          //   event.stopPropagation()
-          //   alert('to')
-          // });
         },
 
         onSlideChangeStart: function(swiper) {
@@ -284,25 +317,19 @@ export default {
           if (swiper.realIndex == 0) {
             vm.$emit('setRouteAbout')
 
+
           }
           if (swiper.realIndex == 1) {
             vm.$emit('setRouteMainSlide', vm.mainSlide)
+
             swiper.updateSlidesSize()
 
           }
 
           if (swiper.realIndex == 2) {
             vm.$emit('setRouteExpanded', vm.mainSlide)
+
           }
-          //
-          // if (vm.aboutExpanded) {
-          //   window.setTimeout(function() {
-          //     swiper.updateSlidesSize()
-          //     swiper.slideTo(1);
-          //
-          //     // match timeout to transition value in #about
-          //   }, 201)
-          // }
 
           vm.aboutExpanded = false
 
@@ -333,6 +360,7 @@ export default {
           vm.projectContent = vm.projects[swiper.realIndex].content.rendered
         },
         onSlideChangeStart: function(swiper) {
+
           vm.$emit('setRouteMainSlide', swiper.realIndex)
         }
 
@@ -360,6 +388,9 @@ body {
     /*color: #000;*/
     margin: 0;
     padding: 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    // display: none;
 }
 
 #app,
@@ -369,8 +400,7 @@ body {
 }
 </style>
 
-<style scoped lang="scss">
-@import '../assets/globalVars.scss';
+<style scoped lang="scss">@import '../assets/globalVars.scss';
 
 #splashPlate {
     -webkit-transition: opacity 1s;
@@ -417,6 +447,33 @@ body {
     font-size: 22px;
     position: fixed;
     z-index: 9;
+}
+
+#triggerAboutMenu {
+    position: absolute;
+    top: 0;
+    z-index: 999999999;
+    color: $globalBlack;
+
+    .triggerAboutSlide {
+        display: inline;
+    }
+
+}
+
+#triggerProject {
+    position: absolute;
+    bottom: $globalPadding;
+    z-index: 999999999;
+    color: $globalBlack;
+    width: 100%;
+    text-align: center;
+    height: 40px;
+    bottom: 0;
+    .triggerAboutSlide {
+        display: inline;
+    }
+
 }
 
 .swiper-container-outer {
@@ -479,7 +536,6 @@ body {
     -moz-transition: height 0.2s;
     transition: height 0.2s;
     position: relative;
-
     width: 100%;
     height: 75%;
     /*max-width: 320px;*/
@@ -525,6 +581,7 @@ body {
     border: 0;
 
     border-top: 1px solid slategrey;
+    border-bottom: 1px solid slategrey;
 
     // width: calc(100% - 40px);
     width: calc(100%);

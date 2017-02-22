@@ -7,17 +7,16 @@ Vue.use(Vue2Filters)
 
 import swiper from 'swiper'
 
-
-
-// require('../node_modules/list.js/dist/list.min.js')
-// import isotope from 'isotope-layout'
-// import masonry from 'masonry-layout'
-// import masonry from 'masonry'
-
-
 import '../node_modules/swiper/dist/css/swiper.min.css'
 
+
+// import bowser from 'bowser'
+
+
 import './assets/simplegrid.css'
+
+import './assets/globalTypo.scss'
+
 
 // import vueSmoothScroll from 'vue-smoothscroll';
 // Vue.use(vueSmoothScroll);
@@ -26,6 +25,7 @@ import './assets/simplegrid.css'
 // import smoothScroll from 'smoothscroll-polyfill';
 // Vue.use(smoothScroll);
 require('smoothscroll-polyfill').polyfill();
+
 
 
 import Hello from './components/Hello'
@@ -91,9 +91,15 @@ new Vue({
   methods: {
     setRouteMainSlide: function(index) {
 
+      // console.log('this is index '+index)
+
       if (index == null) {
         this.mainSlide = 0
-
+        // router.push({
+        //   query: {
+        //     main: 0
+        //   }
+        // })
       }else{
         router.push({
           query: {
@@ -132,15 +138,26 @@ new Vue({
     setRouteAboutExpanded: function(mode) {
 
         this.mainAboutExpanded = mode
+        console.log('expandeddddd')
         console.log(mode)
+        if (this.mainAboutExpanded){
+          router.push({
+            query: {
+              about: 'true',
+              main: this.mainSlide,
+              aboutexp: 'true'
+            }
+          })
+        }else{
+          router.push({
+            query: {
+              about: 'true',
+              main: this.mainSlide,
+            }
+          })
+        }
 
-        router.push({
-          query: {
-            about: 'true',
-            main: 0,
-            aboutexp: this.mainAboutExpanded
-          }
-        })
+
 
 
     },

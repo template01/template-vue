@@ -1,0 +1,18 @@
+@import './globalVars.scss';
+
+$globalFontSizeLarge:20px;
+
+p{
+  font-size: $globalFontSizeLarge;
+  // color: $globalBlack;
+
+}
+
+table{
+  font-size: $globalFontSizeLarge;
+}
+
+button{
+  font-size: $globalFontSizeLarge;
+  color: $globalBlack;
+}

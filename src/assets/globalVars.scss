@@ -1,9 +1,15 @@
 $globalRed: red;
+
+$globalBlack: slategrey;
+
 $globalLightYellow:#fffae5;
+
+$globalPadding: 20px; 
+// $globalFontSizeLarge:20px;
 
 
 .ignoreMarginTop{
   p:first-of-type{
-    margin:0;
+    margin-top:0;
   }
 }
