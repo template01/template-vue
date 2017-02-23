@@ -11,9 +11,10 @@
   "dependencies": {
     "swiper": "^3.4.1",
     "vue": "^2.1.10",
+    "vue-lazyload": "^1.0.0-rc10",
     "vue-nonreactive": "0.0.1",
     "vue-resource": "^1.2.0",
-    "vue-router": "^2.2.0",
+    "vue-router": "^2.2.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",

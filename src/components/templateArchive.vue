@@ -22,7 +22,7 @@
   <div id="aboutArchiveLoadedItem" class="col-2-3">
     <div v-if="this.archiveItemLoaded">
 
-      <div v-if="typeof this.activeArchiveItem != Object" class="col-1-2">
+      <div v-if="typeof this.activeArchiveItem != Object" v-bind:class="[isMidSize ? 'col-1-1':'col-1-2']">
         <p>
           <span v-html="activeArchiveItem.item_name"></span> (<span v-html="activeArchiveItem.item_year"></span>,
           <span v-html="activeArchiveItem.item_type[0]"></span>)
@@ -40,7 +40,7 @@
 <script>
 export default {
   name: 'templateArchive',
-  props: ['aboutArchiveObject', 'aboutSmoothScroll'],
+  props: ['aboutArchiveObject', 'aboutSmoothScroll','isMidSize'],
 
   data() {
 
@@ -71,7 +71,7 @@ export default {
       } else {
         setTimeout(function() {
           document.getElementById('about').scrollTop = document.querySelector('#aboutArchiveLoadedItem').offsetTop;
-          
+
         },1)
       }
     },

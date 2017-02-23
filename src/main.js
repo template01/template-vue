@@ -2,15 +2,17 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import vueResource from 'vue-resource'
 import Vue2Filters from 'vue2-filters'
-
 Vue.use(Vue2Filters)
 
-import swiper from 'swiper'
+import VueLazyload from 'vue-lazyload'
+Vue.use(VueLazyload)
 
+import swiper from 'swiper'
 import '../node_modules/swiper/dist/css/swiper.min.css'
 
 
 // import bowser from 'bowser'
+// import './assets/bowserWebpack.js'
 
 
 import './assets/simplegrid.css'

@@ -1,10 +1,10 @@
-<template>
+projectSingleAll<template>
 <div id="templateIndex" class="">
   <!-- <div v-bind:class="{ splashActive: splash }" id="splashPlate"></div> -->
   <div class="swiper-container swiper-container-outer">
     <div class="swiper-wrapper">
       <div v-bind:class="{ aboutExpandedActive: aboutExpanded }" id="about" class="swiper-slide">
-        <templateAbout v-on:goToProjectSection="function(slide){goToProjectSection(slide)}" v-on:expandAbout="expandAbout()" v-bind:aboutExpanded="aboutExpanded"></templateAbout>
+        <templateAbout v-bind:isMobileSize="isMobileSize" v-bind:isMidSize="isMidSize" v-on:goToProjectSection="function(slide){goToProjectSection(slide)}" v-on:expandAbout="expandAbout()" v-bind:aboutExpanded="aboutExpanded"></templateAbout>
 
 
         <button v-if="!aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutClosed toggleAboutButton" id="expandAboutButton" name="button">Read More</button>
@@ -35,7 +35,7 @@
               <!-- <div v-bind:src="project.acf.customfeaturedimage.url"></div> -->
 
 
-              <div id="triggerProject"  @click="toggleProject()">
+              <div id="triggerProject" @click="toggleProject()">
                 <div>
 
                   <p v-if="inAboutSection" class="triggerAboutSlide">
@@ -56,17 +56,37 @@
 
       <div class="swiper-slide openedProject">
         <button v-on:click="goToProjectSection('getFromRoute')" type="button" class="goBackToProjectButton" name="button">Back to top</button>
-        <div class="openedProjectInner" v-html="projectContent"></div>
+
+        <div v-if="typeof projectSingleAll === 'object'" class="openedProjectInner grid grid-pad">
+          <div class="col-1-3">
+            <p v-html="projectSingleAll.title.rendered"></p>
+            <p v-html="projectSingleAll.acf.item_type[0]"></p>
+            <p v-html="projectSingleAll.acf.item_year"></p>
+            <p v-html="projectSingleAll.acf.item_link"></p>
+            <div v-html="projectSingleAll.acf.item_text"></div>
+
+          </div>
+          <!-- <div class=" grid no-pad"> -->
+          <div class="openedProjectMediaItem" v-for="item in projectSingleAll.acf.item_media" v-bind:class="returnProjectMediaAlign(item.align)">
+            <img v-if="item.image" v-lazy="item.image.url" :srcset="item.image.sizes.medium + ' 480w, ' + item.image.sizes.medium_large + ' 768w, ' + item.image.sizes.large +' 840w,' + item.image.url +' 1440w'" />
+            <div v-if="item.textarea" v-html="item.textarea"></div>
+            <div class="iframeWrapper" v-if="item.iframe">
+              <div class="iframeWrapperHeader">LIVE PREVIEW</div>
+              <iframe @load="setIframeHeight()" style="width:100%" v-bind:src="item.iframe"></iframe>
+            </div>
+          </div>
+          <!-- </div><br> -->
+
+        </div>
+
       </div>
 
+      <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutExpanded toggleAboutButton" name="button">Too much - take me back!</button>
+
+
     </div>
-
-    <button v-if="aboutExpanded" v-on:click="toggleExpandAbout()" type="button" class="toggleAboutExpanded toggleAboutButton" name="button">Too much - take me back!</button>
-
-
+    <router-view></router-view>
   </div>
-  <router-view></router-view>
-</div>
 </template>
 
 <script>
@@ -85,14 +105,18 @@ export default {
       msg: 'Welcome to Your Vue.js App',
       currentSlideInner: 0,
       projects: [],
-      projectContent: '',
+      projectSingleAll: '',
       initialSlide: 0,
       aboutExpanded: this.mainAboutExpanded,
       showAboutToggleExpanded: true,
       splash: true,
       swiperOuterObject: Object,
       swiperInnerObject: Object,
-      inAboutSection: true
+      inAboutSection: true,
+      isMobileSize: false,
+      breakpointMobile: 767,
+      isMidSize: false,
+      breakpointMid: 1023
     }
   },
 
@@ -103,6 +127,7 @@ export default {
   },
 
   created: function() {
+    this.checkScreenSize()
 
     this.$http.get('http://api.template-studio.nl/wp-json/wp/v2/posts').then(function(response) {
       this.projects = response.body
@@ -194,6 +219,61 @@ export default {
   },
 
   methods: {
+
+    setIframeHeight() {
+      console.log(this.$el.clientHeight)
+      console.log(this.$el)
+      this.$el.querySelectorAll('iframe').forEach(function(iframe) {
+        iframe.style.height= iframe.clientWidth*0.6666+'px'
+        console.log(iframe.clientWidth)
+
+      });
+
+
+    },
+    returnProjectMediaAlign(alignInput) {
+      if (alignInput === 'full') {
+        return 'col-1-1'
+
+      }
+      if (alignInput === 'leftSmall') {
+        return 'col-1-3'
+      }
+
+      if (alignInput === 'leftLarge') {
+        return 'col-2-3'
+      }
+
+      if (alignInput === 'rightSmall') {
+        return 'push-1-3 col-1-3'
+      }
+      if (alignInput === 'rightLarge') {
+        return 'push-1-3 col-1-2'
+      }
+
+    },
+
+    checkScreenSize() {
+
+      var windowWidth = window.innerWidth
+
+      if (windowWidth < this.breakpointMobile) {
+        this.isMobileSize = true
+      } else {
+        this.isMobileSize = false
+      }
+
+      if (windowWidth >= this.breakpointMobile && windowWidth <= this.breakpointMid) {
+        this.isMidSize = true
+        console.log('mid')
+      } else {
+        this.isMidSize = false
+        console.log('not mid')
+
+      }
+
+    },
+
 
     goToProjectSection: function(slide) {
       if (slide === 'getFromRoute') {
@@ -346,18 +426,22 @@ export default {
         onInit: function(swiper) {
 
           if (vm.mainSlide == null) {
-            vm.projectContent = vm.projects[0].content.rendered
+            vm.projectSingleAll = vm.projects[0]
             swiper.slideTo(0);
           } else {
-            vm.projectContent = vm.projects[vm.mainSlide].content.rendered
+            vm.projectSingleAll = vm.projects[vm.mainSlide]
             swiper.slideTo(vm.mainSlide);
           }
-
 
         },
         onTransitionEnd: function(swiper) {
           vm.currentSlideInner = swiper.realIndex
-          vm.projectContent = vm.projects[swiper.realIndex].content.rendered
+
+          setTimeout(function() {
+            vm.projectSingleAll = vm.projects[swiper.realIndex]
+
+
+          }, 200)
         },
         onSlideChangeStart: function(swiper) {
 
@@ -368,6 +452,15 @@ export default {
       });
     }
   },
+
+  mounted: function() {
+
+    var vm = this
+    window.addEventListener('resize', debounce(function() {
+      vm.checkScreenSize()
+    }, 100));
+
+  }
 
 }
 </script>
@@ -520,7 +613,43 @@ body {
     }
 }
 
-.openedProject {}
+.openedProject {
+
+    .openedProjectInner {
+        .openedProjectMediaItem {
+            display: block;
+            padding-bottom: $globalPadding;
+            margin: 0;
+        }
+        img {
+            width: 100%;
+            display: block;
+
+        }
+
+        .iframeWrapper{
+          background: $globalBlack;
+          display: flex;
+          padding-top: 30px;
+          border-radius: 4px;
+          position: relative;
+          .iframeWrapperHeader{
+            position: absolute;
+            top:0;
+            color: $globalLightYellow;
+            right: 10px;
+            height: 30px;
+            line-height: 30px;
+          }
+        }
+
+        iframe{
+          border: 1px solid $globalBlack;
+          border-radius: 2px;
+          margin: 0;
+        }
+    }
+}
 
 .openedProjectInner {
     // margin-top: 32px;

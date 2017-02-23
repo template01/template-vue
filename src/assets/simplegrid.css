@@ -285,3 +285,7 @@
 		height: 0;
 	}
 }
+
+.no-pad{
+	padding: 0;
+}

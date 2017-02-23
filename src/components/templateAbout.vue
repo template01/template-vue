@@ -28,7 +28,7 @@
 
       </div>
     </div>
-    <div class=" col-1-3">
+    <div v-bind:class="[isMidSize ? 'col-2-3':'col-1-3']">
       <div class="ignoreMarginTop" v-html="aboutText.indexblurb"></div>
       <div class="col-1-1">
         <div class="aboutSection" id="aboutContact">
@@ -37,7 +37,7 @@
         </div>
       </div>
     </div>
-    <div class="col-1-3">
+    <div v-bind:class="[isMidSize ? 'col-2-3 push-1-3':'col-1-3']">
       <div><img src="http://3.design-milk.com/images/2016/03/Masquespacio-Workspace-interior-1.jpg" /></div>
     </div>
   </div>
@@ -47,13 +47,17 @@
   <div id="showTheRestAbout" v-bind:class="{ showTheRestAboutActive: aboutExpanded }">
 
     <div class="grid grid-pad">
-      <div class="col-1-3 push-1-3">
+      <!-- <div class="col-1-3 push-1-3"> -->
+
+        <div v-bind:class="[isMidSize ? 'col-2-3 push-1-3':'col-1-3 push-1-3']">
+
         <div class="aboutSection" id="aboutStudio">
           <p class="aboutHeader">Studio</p>
           <div v-html="aboutText.indexblurb"></div>
         </div>
       </div>
-      <div class="col-1-3">
+      <div v-bind:class="[isMidSize ? 'col-2-3 push-1-3':'col-1-3']">
+
 
         <div class="aboutSection" id="aboutProjects">
           <p class="aboutHeader">Featured Projects</p>
@@ -76,7 +80,7 @@
     <div class="grid grid-pad">
       <div class="aboutSection" id="aboutArchive">
 
-        <templateArchive v-bind:aboutSmoothScroll="aboutSmoothScroll" v-bind:aboutArchiveObject="aboutArchiveObject"></templateArchive>
+        <templateArchive v-bind:isMidSize="isMidSize" v-bind:aboutSmoothScroll="aboutSmoothScroll" v-bind:aboutArchiveObject="aboutArchiveObject"></templateArchive>
       </div>
     </div>
 
@@ -97,7 +101,7 @@ export default {
 
 
   name: 'templateAbout',
-  props: ['aboutExpanded'],
+  props: ['aboutExpanded','isMobileSize','isMidSize'],
   components: {
     templateArchive
   },
@@ -109,8 +113,10 @@ export default {
       aboutProjectsObject: Object,
       aboutArchiveObject: [],
       aboutSmoothScroll: true,
-      isMobileSize: false,
-      breakpointMobile: 767,
+      // isMobileSize: false,
+      // breakpointMobile: 767,
+      // isMidSize: false,
+      // breakpointMid: 1023,
       showAboutMenu: true
         // aboutActiveSection: false,
 
@@ -191,16 +197,28 @@ export default {
 
     },
 
-    checkIsMobile() {
-
-
-      if (window.innerWidth < this.breakpointMobile) {
-        this.isMobileSize = true
-      } else {
-        this.isMobileSize = false
-      }
-
-    }
+    // checkScreenSize() {
+    //
+    //   var windowWidth = window.innerWidth
+    //
+    //   if (windowWidth < this.breakpointMobile) {
+    //     this.isMobileSize = true
+    //   } else {
+    //     this.isMobileSize = false
+    //   }
+    //
+    //   if (windowWidth >= this.breakpointMobile && windowWidth <= this.breakpointMid) {
+    //     this.isMidSize = true
+    //     console.log('mid')
+    //   } else {
+    //     this.isMidSize = false
+    //     console.log('not mid')
+    //
+    //   }
+    //
+    //
+    //
+    // }
   },
   created: function() {
 
@@ -210,10 +228,9 @@ export default {
       this.aboutSmoothScroll = false
     } else {
       this.aboutSmoothScroll = true
-
     }
 
-    this.checkIsMobile()
+    // this.checkScreenSize()
 
 
     this.$http.get('http://api.template-studio.nl/wp-json/wp/v2/pages?filter[name]=index&fields=acf').then(function(response) {
@@ -250,6 +267,7 @@ export default {
     });
 
     var initScrollStopper = function() {
+      // alert('yo')
       if (vm.aboutSmoothScroll) {
         vm.showAboutMenu = false
       }
@@ -264,7 +282,8 @@ export default {
 
     var vm = this
     window.addEventListener('resize', debounce(function() {
-      vm.checkIsMobile()
+      document.getElementById("about").removeEventListener("scroll", initScrollStopper);
+
       console.log('init')
 
       if (!vm.isMobileSize) {
@@ -341,7 +360,7 @@ img {
     //     float: left;
     // }
     @media handheld, only screen and (max-width: 767px) {
-
+        top: 0px !important;
         width: 100%;
         position: relative;
         display: block;
